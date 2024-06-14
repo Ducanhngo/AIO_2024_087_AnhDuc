@@ -1,47 +1,20 @@
-name: SonarCloud Analysis
-
+name: Build
 on:
   push:
     branches:
-      - main  # Replace with your main branch name
+      - main
   pull_request:
     types: [opened, synchronize, reopened]
-
 jobs:
-  sonarcloud-analysis:
-    name: SonarCloud Scan
+  sonarcloud:
+    name: SonarCloud
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up Node.js
-        run: |
-          curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
-          export NVM_DIR="$HOME/.nvm"
-          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-          nvm install 20
-          node --version
-          npm --version
-
-      - name: Cache SonarCloud packages
-        uses: actions/cache@v2
+      - uses: actions/checkout@v3
         with:
-          path: ~/.sonar/cache
-          key: ${{ runner.os }}-sonar
-          restore-keys: |
-            ${{ runner.os }}-sonar
-
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        with:
-          args: >
-            -Dsonar.projectKey=your_project_key
-            -Dsonar.organization=your_organization
-            -Dsonar.sources=src  # Adjust source directory as needed
-            -Dsonar.tests=test  # Adjust test directory as needed
-            -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info  # Adjust coverage report path for JavaScript projects
